@@ -12,12 +12,12 @@ The mouse is used as primary input. Click the **LEFT BUTTON** to expose what lie
 
 The game is set to easy difficulty by default. You can reset the game to an alternate difficulty setting by using the **F1**, **F2**, and **F3** keys on the keyboard.
 
-* `F1: New game at **EASY PEASY** difficulty setting. Flag 30 mines.`
-* `F2: New game at **I LIKE IT SPICY!** difficulty setting. Flag 60 mines.`
-* `F3: New game at **WHY SO SERIOUS?** difficulty setting. Flag 90 mines.`
+* `F1: New game at EASY PEASY difficulty setting. Flag 30 mines.`
+* `F2: New game at I LIKE IT SPICY! difficulty setting. Flag 60 mines.`
+* `F3: New game at WHY SO SERIOUS? difficulty setting. Flag 90 mines.`
 * `F9: New game at currently selected difficulty setting.`
 
-Don't Get Exploded features a visual design that imitates an LCD display. The background can be changed at any time by using the F5, F6, and F7 keys.
+Don't Get Exploded features a visual design that imitates an LCD display. The background can be changed at any time by using the **F5**, **F6**, and **F7** keys.
 
 * `F5: Classic LCD.`
 * `F6: Blue LCD.`
@@ -27,7 +27,7 @@ To exit the game completely, close the game window.
 
 ###Compiling
 
-SDL2 (http://www.libsdl.org) is required to compile. Assuming you have the SDL2 library installed, the makefile included should build the game. 
+SDL2 (https://www.libsdl.org) is required to compile. Assuming you have the SDL2 library installed, the makefile included should build the game. 
 
 If you have the files arranged as above, simply execute:
 `make`
