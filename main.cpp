@@ -2,18 +2,20 @@
 #include "SDL2/SDL.h"
 #include "game.h"
 
-/* ....................... */
-/* : Don't Get Exploded! : */
-/* ::::::::::::::::::::::: */
+// Don't Get Exploded!
+// by Brian Puthuff
 
-// 
+// main.cpp
+// Updated: Sun Apr  3 01:11:00 PDT 2016
 
-// window dimensions
-const Uint16 window_width = 640;
-const Uint16 window_height = 672;
 
 int main(int argc, char** argv)
 {
+	// window dimensions
+	const Uint16 window_width = 640;
+	const Uint16 window_height = 672;
+
+	// initialize SDL
 	if(SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		std::cerr << "Could not initialize SDL.\n";
@@ -22,7 +24,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-			
+	// create window and renderer		
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 	SDL_CreateWindowAndRenderer(window_width, window_height, SDL_WINDOW_SHOWN, &window, &renderer);
@@ -43,10 +45,8 @@ int main(int argc, char** argv)
 	SDL_RenderClear(renderer);
 	SDL_RenderPresent(renderer);
 
-	//	SDL_Surface* render_surface = SDL_GetWindowSurface(window);
-	//	std::cout << render_surface->w << ", " << render_surface->h << '\n';
+	// load tile set
 	SDL_Surface* tiles = SDL_LoadBMP("./tiles.bmp");
-
 	if(tiles == NULL) 
 	{
 		std::cerr << "Issue loading assets.\n";
@@ -58,9 +58,11 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	
+	// new game object
 	Game game(window, renderer, tiles);
 	game.play();
 
+	// free up memory
 	SDL_FreeSurface(tiles);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);

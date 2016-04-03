@@ -1,9 +1,19 @@
+#ifndef GAME_H
+#define GAME_H
+
 #include <iostream>
 #include "SDL2/SDL.h"
 #include <utility>
 #include <random>
 
+// Don't Get Exploded!
+// by Brian Puthuff
+
+// game.h
+// Updated: Sun Apr  3 01:21:56 PDT 2016
+
 enum { EASY_PEASY, I_LIKE_IT_SPICY, WHY_SO_SERIOUS };
+
 class Game
 {
 	public:
@@ -13,12 +23,13 @@ class Game
 	private:
 		int width;
 		int height;
-
+		
+		// local pointers
 		SDL_Window* window;
 		SDL_Renderer* renderer;
 		SDL_Surface* tiles;
 		
-		// internal mixing/painting
+		// internal mixing and painting
 		SDL_Texture* render_texture;
 		SDL_Surface* pixels;
 		SDL_Surface* mix_surface_1;
@@ -34,7 +45,11 @@ class Game
 		int mines;
 		int difficulty;
 		int current_message;
+
+		// sprites (tiles)
 		SDL_Rect sprites[33];
+
+		// for radial gradient <1st color, 2nd color>
 		std::pair<Uint32, Uint32> bg_colors[3];
 
 		SDL_Event event;
@@ -53,6 +68,6 @@ class Game
 		int sweepCell(int cell);
 		void blurSurface();
 		int getTile(int x, int y);
-
-
 };
+
+#endif

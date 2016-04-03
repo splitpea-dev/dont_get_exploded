@@ -1,9 +1,16 @@
 #include "game.h"
 
+// Don't Get Exploded
+// by Brian Puthuff
+
+// game.cpp
+// Updated: Sun Apr  3 01:23:21 PDT 2016
+
+
 // constructor
 Game::Game(SDL_Window* window, SDL_Renderer* renderer, SDL_Surface* tiles)
 {
-	// set rendering pointers for game object
+	// set local rendering pointers for game object
 	this->window = window;
 	this->renderer = renderer;
 	this->tiles = tiles;
@@ -29,7 +36,7 @@ Game::Game(SDL_Window* window, SDL_Renderer* renderer, SDL_Surface* tiles)
 	SDL_SetColorKey(this->tiles, SDL_TRUE, color_key);
 	SDL_SetSurfaceBlendMode(pixels, SDL_BLENDMODE_BLEND);
 	
-	// initialize sprite map
+	// initialize sprites
 	for(int i = 0; i < 30; i++)
 		sprites[i].w = sprites[i].h = 32;
 	for(int i = 0; i < 15; i++)
@@ -41,7 +48,7 @@ Game::Game(SDL_Window* window, SDL_Renderer* renderer, SDL_Surface* tiles)
 		sprites[i + 15].y = 32;
 	}
 
-	// messages
+	// initialize sprite messages
 	for(int i = 0; i < 3; i++)
 	{
 		sprites[i + 30].w = 480;
@@ -68,6 +75,7 @@ Game::Game(SDL_Window* window, SDL_Renderer* renderer, SDL_Surface* tiles)
 	difficulty = EASY_PEASY;
 	initialize();
 }
+
 
 // destructor
 Game::~Game()
@@ -287,7 +295,6 @@ void Game::play()
 									}
 								}
 								current_message = 2;	
-								std::cout << "GAME OVER! -- YOU GO EXPLODED!!!\n";
 								is_playing = false;
 								got_exploded = true;
 							}
@@ -303,7 +310,6 @@ void Game::play()
 							if(correctly_placed_flags == mines)
 							{
 								current_message = 1;
-								std::cout << "GAME OVER! -- YOU WIN!!!\n";
 								is_playing = false;
 							}
 							renderWindow();
@@ -606,7 +612,7 @@ void Game::renderBackground(Uint32 s_color, Uint32 e_color)
 	int h = height / 2; // ditto
 	Uint32 pixel_color; // read-write pixel color
 	double degrees, radians, tick;
-	int radius = 448; // adjust this for longer or shorter spread
+	int radius = 512; // adjust this for longer or shorter spread
 	Uint32* pixels = (Uint32*) bg_surface->pixels; // pointer to surface pixels
 	Uint8 r, g, b; // linear gradient RGB
 	Uint8 sr, sg, sb; // start color RGB
