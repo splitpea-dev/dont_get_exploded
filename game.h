@@ -5,6 +5,7 @@
 #include "SDL2/SDL.h"
 #include <utility>
 #include <random>
+#include <ctime>
 
 // Don't Get Exploded!
 // by Brian Puthuff
@@ -66,7 +67,8 @@ class Game
 		void renderBackground(Uint32 color_1, Uint32 color_2);
 		void flagCell(int cell);
 		int sweepCell(int cell);
-		void blurSurface();
+		void blurSurface(SDL_Surface* source, SDL_Surface* destination);
+		void screenshot(void);
 		int getTile(int x, int y);
 };
 

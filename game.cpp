@@ -10,6 +10,7 @@
 // constructor
 Game::Game(SDL_Window* window, SDL_Renderer* renderer, SDL_Surface* tiles)
 {
+
 	// set local rendering pointers for game object
 	this->window = window;
 	this->renderer = renderer;
@@ -62,12 +63,12 @@ Game::Game(SDL_Window* window, SDL_Renderer* renderer, SDL_Surface* tiles)
 	bg_colors[0].second = SDL_MapRGBA(bg_surface->format, 0x58, 0x57, 0x44, 0xff);
 	
 	// blue LCD
-	bg_colors[1].first = SDL_MapRGBA(bg_surface->format, 0x00, 0xa0, 0xe0, 0xff);
-	bg_colors[1].second = SDL_MapRGBA(bg_surface->format, 0x00, 0x50, 0x70, 0xff);
+	bg_colors[1].first = SDL_MapRGBA(bg_surface->format, 0x00, 0x80, 0xff, 0xff);
+	bg_colors[1].second = SDL_MapRGBA(bg_surface->format, 0x00, 0x40, 0x80, 0xff);
 	
-	// red LCD
-	bg_colors[2].first = SDL_MapRGBA(bg_surface->format, 0xe0, 0x00, 0x00, 0xff);
-	bg_colors[2].second = SDL_MapRGBA(bg_surface->format, 0x70, 0x00, 0x00, 0xff);
+	// orange LCD
+	bg_colors[2].first = SDL_MapRGBA(bg_surface->format, 0xff, 0x80, 0x00, 0xff);
+	bg_colors[2].second = SDL_MapRGBA(bg_surface->format, 0x80, 0x40, 0x00, 0xff);
 
 	renderBackground(bg_colors[0].first, bg_colors[0].second);
 
@@ -261,7 +262,10 @@ void Game::play()
 					initialize();
 				}
 				// PRINTSCREEN to save screenshot
-				// to be implemented
+				if(event.key.keysym.sym == SDLK_F12)
+				{
+					screenshot();
+				}
 			}
 			else if(event.type == SDL_MOUSEBUTTONDOWN)
 			{
@@ -425,10 +429,14 @@ void Game::renderWindow()
 	}
 	*/
 
+	/*
 	Uint32* ms1 = (Uint32*) mix_surface_1->pixels; // read data
 	Uint32* ms2 = (Uint32*) mix_surface_2->pixels; // write data
 	Uint32 p; // pixel
-	
+	*/
+
+	Uint32* ms2_pixels = (Uint32*) mix_surface_2->pixels; // write data
+
 	// render bg surface to mix surface 1
 	SDL_BlitSurface(bg_surface, NULL, mix_surface_1, NULL);
 	position.w = width;
@@ -438,44 +446,8 @@ void Game::renderWindow()
 		position.x = position.y = offset;
 		if(offset == 0)
 		{
-			// average blur mix surface 1 to mix surface 2 (for LCD shadow effect)
-			for(int i_row = 0; i_row < 672; i_row++)
-			{
-				for(int i_col = 0; i_col < 640; i_col++)
-				{
-					int c = 0; // count
-					int r_sum = 0;
-					int g_sum = 0;
-					int b_sum = 0;
-					Uint8 r, g, b;
-					for(int s_row = -1; s_row < 2; s_row++)
-					{
-						for(int s_col = -1; s_col < 2; s_col++)
-						{
-							if(((i_row + s_row) >= 0) && ((i_row + s_row) < 672))
-							{
-								if(((i_col + s_col) >= 0) && ((i_col + s_col) < 640))
-								{
-									p = ms1[((i_row + s_row) * 640) + i_col + s_col];
-									SDL_GetRGB(p, mix_surface_1->format, &r, &g, &b);
-									r_sum += int(r);
-									g_sum += int(g);
-									b_sum += int(b);
-									c++;
-								}
-							}
-						}
-					}
-
-					// average sum
-					r = (r_sum / c);
-					g = (g_sum / c);
-					b = (b_sum / c);
-
-					p = SDL_MapRGB(mix_surface_2->format, r, g, b);
-					ms2[i_row * 640 + i_col] = p;
-				}
-			}
+			// soften/blur shadow maps and background gradient 
+			blurSurface(mix_surface_1, mix_surface_2);
 			
 			// render pixels surface LCD image on top of blurred shadows
 			SDL_SetSurfaceAlphaMod(pixels, 255);
@@ -490,7 +462,7 @@ void Game::renderWindow()
 	}
 
 	// render
-	SDL_UpdateTexture(render_texture, NULL, ms2, width * sizeof(Uint32));
+	SDL_UpdateTexture(render_texture, NULL, ms2_pixels, width * sizeof(Uint32));
 	SDL_RenderClear(renderer);
 	SDL_RenderCopy(renderer, render_texture, NULL, NULL);
 	SDL_RenderPresent(renderer);
@@ -573,6 +545,20 @@ void Game::flagCell(int cell)
 	*/
 }
 
+void Game::screenshot()
+{
+	// get current time
+	time_t current_time;
+	struct tm* time_info;
+	char filename[30]; // output filename
+	time(&current_time);
+	time_info = localtime(&current_time);
+	strftime(filename, 31, "screenshot_%Y%m%d-%H%M%S.bmp", time_info);
+	
+	// save screenshot
+	SDL_SaveBMP(mix_surface_2, filename);
+}
+
 void Game::renderStats()
 {
 	SDL_Rect p;
@@ -604,6 +590,58 @@ void Game::renderStats()
 	
 }
 
+void Game::blurSurface(SDL_Surface* source, SDL_Surface* destination)
+{
+	// source must be smaller or equal to size of destination
+	if((source->w > destination->w) || (source->h > destination->h))
+		return;
+
+	Uint32* sp = (Uint32*) source->pixels; // read data
+	Uint32* dp = (Uint32*) destination->pixels; // write data
+	Uint32 p; // pixel
+
+	int w = source->w;
+	int h = source->h;
+
+	// average blur mix surface 1 to mix surface 2 (for LCD shadow effect)
+	for(int i_row = 0; i_row < h; i_row++)
+	{
+		for(int i_col = 0; i_col < w; i_col++)
+		{
+			int c = 0; // count
+			int r_sum = 0;
+			int g_sum = 0;
+			int b_sum = 0;
+			Uint8 r, g, b;
+			for(int s_row = -1; s_row < 2; s_row++)
+			{
+				for(int s_col = -1; s_col < 2; s_col++)
+				{
+					if(((i_row + s_row) >= 0) && ((i_row + s_row) < h))
+					{
+						if(((i_col + s_col) >= 0) && ((i_col + s_col) < w))
+						{
+							p = sp[((i_row + s_row) * w) + i_col + s_col];
+							SDL_GetRGB(p, source->format, &r, &g, &b);
+							r_sum += int(r);
+							g_sum += int(g);
+							b_sum += int(b);
+							c++;
+						}
+					}
+				}
+			}
+
+			// average sum
+			r = (r_sum / c);
+			g = (g_sum / c);
+			b = (b_sum / c);
+
+			p = SDL_MapRGB(destination->format, r, g, b);
+			dp[(i_row * w) + i_col] = p;
+		}
+	}
+}
 
 // this function fills the bg_surface with a radial gradient
 void Game::renderBackground(Uint32 s_color, Uint32 e_color)

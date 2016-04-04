@@ -6,6 +6,8 @@ Start the game by selecting a random tile. If the underlying feature is an empty
 
 If you expose a tile that has a mine underneath, the game is over. The goal is to correctly flag all assumed mine locations. A counter in the lower right corner indicates how many flags are available to place (based on the difficulty setting). If there are no more available flags to place, and the game hasn't ended in your favor, then some placed flags are incorrect. You may remove placed flags at any time.
 
+![Sample Screenshot](./sample_screenshot_1.png);
+
 ###Input
 
 The mouse is used as primary input. Click the **LEFT BUTTON** to expose what lies beneath a top level tile. Click the **RIGHT BUTTON** to place a flag on the unexposed top level tile. To remove a flag that has been place, click the **RIGHT BUTTON** on the flag.
@@ -21,7 +23,11 @@ Don't Get Exploded features a visual design that imitates an LCD display. The ba
 
 * `F5: Classic LCD.`
 * `F6: Blue LCD.`
-* `F7: Red LCD.`
+* `F7: Orange LCD.`
+
+![Sample Screenshot](./sample_screenshot_2.png);
+
+Finally, you can save a screenshot to the current directory by pressing **F12**. Screenshots are saved as .BMP files.
 
 To exit the game completely, close the game window.
 
@@ -38,9 +44,6 @@ That should compile and create an executable called `dge`.
 After you get the executable, simply run it:
 
 `./dge`
-
-###Notes
-There is still a little clean up work to be done, and one or two more features to implement (i.e. screenshot saving), however the game is fully playable. So, grab the code, build it, and enjoy!
 
 ###Colophon
 I programmed this game in C++ using [VIM](http://www.vim.org/). The graphics were composed with [GIMP](http://www.gimp.org/). This game was developed in a Linux desktop environment.
