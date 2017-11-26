@@ -1,4 +1,4 @@
-#Don't Get Exploded!
+# Don't Get Exploded!
 
 Flag those mines and don't get exploded! **Don't Get Exploded** is a single player logic puzzle game involving mines, deductive reasoning, and flags. You know this game. It goes by many names, usually with the word "mine" in the forefront. If for some incredible reason, you are not familiar with this type of game, here's the basic game play rules.
 
@@ -8,7 +8,7 @@ If you expose a tile that has a mine underneath, the game is over. The goal is t
 
 ![Sample Screenshot](./sample_screenshot_1.png);
 
-###Input
+## Input
 
 The mouse is used as primary input. Click the **LEFT BUTTON** to expose what lies beneath a top level tile. Click the **RIGHT BUTTON** to place a flag on the unexposed top level tile. To remove a flag that has been place, click the **RIGHT BUTTON** on the flag.
 
@@ -31,7 +31,7 @@ Finally, you can save a screenshot to the current directory by pressing **F12**.
 
 To exit the game completely, close the game window.
 
-###Compiling
+## Compiling
 
 SDL2 (https://www.libsdl.org) is required to compile. Assuming you have the SDL2 library installed, the makefile included should build the game. 
 
@@ -40,10 +40,8 @@ If you have the files arranged as above, simply execute:
 
 That should compile and create an executable called `dge`.
 
-###Running
+## Running
 After you get the executable, simply run it:
 
 `./dge`
 
-###Colophon
-I programmed this game in C++ using [VIM](http://www.vim.org/). The graphics were composed with [GIMP](http://www.gimp.org/). This game was developed in a Linux desktop environment.
