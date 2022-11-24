@@ -1,729 +1,301 @@
+/*
+** Don't Get Exploded!
+** Copyright 2022, Brian Puthuff
+**
+** See LICENSE.md for details.
+*/
+
+
 #include "game.h"
 
-// Don't Get Exploded
-// by Brian Puthuff
 
-// game.cpp
-// Updated: Sun Apr  3 01:23:21 PDT 2016
-
-
-// constructor
-Game::Game(SDL_Window* window, SDL_Renderer* renderer, SDL_Surface* tiles)
+Game::Game ( void )
 {
+	// instantiate things ...
+	_data = new Data ( );
+	_input = new Input ( );
+	_graphics = new Graphics ( );
+	_playfield = new Playfield ( PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT );
+	_ticks = new Ticks ( );
 
-	// set local rendering pointers for game object
-	this->window = window;
-	this->renderer = renderer;
-	this->tiles = tiles;
+	// set initial variables
+	_state = PLAYING_FIRST_MOVE;
+	_correct_flags = 0;
 
-	// set width and height variables
-	SDL_GetWindowSize(this->window, &width, &height);
-
-	// surfaces for game image and mixing surface for shadow effect blending
-	pixels = SDL_CreateRGBSurface(0, width, height, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-	mix_surface_1 = SDL_CreateRGBSurface(0, width, height, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-	mix_surface_2 = SDL_CreateRGBSurface(0, width, height, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-	bg_surface = SDL_CreateRGBSurface(0, width, height, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-
-	// stream texture to render final image
-	render_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
-
-	// optimize loaded bitmaps
-	this->tiles = SDL_ConvertSurface(tiles, mix_surface_1->format, 0);
-	
-	// set color key game image and tiles
-	Uint32 color_key = SDL_MapRGBA(this->tiles->format, 0x00, 0xff, 0xff, 0xff);
-	SDL_SetColorKey(pixels, SDL_TRUE, color_key);
-	SDL_SetColorKey(this->tiles, SDL_TRUE, color_key);
-	SDL_SetSurfaceBlendMode(pixels, SDL_BLENDMODE_BLEND);
-	
-	// initialize sprites
-	for(int i = 0; i < 30; i++)
-		sprites[i].w = sprites[i].h = 32;
-	for(int i = 0; i < 15; i++)
+	// set input scaler from display scale settings
+	if ( _graphics->getIntegerScaler ( ) == 2 )
 	{
-		sprites[i].x = i * 32;
-		sprites[i].y = 0;
-
-		sprites[i + 15].x = i * 32;
-		sprites[i + 15].y = 32;
+		_input->setScaleFlag ( true );
 	}
-
-	// initialize sprite messages
-	for(int i = 0; i < 3; i++)
-	{
-		sprites[i + 30].w = 480;
-		sprites[i + 30].h = 32;
-		sprites[i + 30].x = 0;
-		sprites[i + 30].y = (i + 2) * 32;
-	}
-
-	// default LCD color
-	bg_colors[0].first = SDL_MapRGBA(bg_surface->format, 0xaf, 0xae, 0x88, 0xff);
-	bg_colors[0].second = SDL_MapRGBA(bg_surface->format, 0x58, 0x57, 0x44, 0xff);
-	
-	// blue LCD
-	bg_colors[1].first = SDL_MapRGBA(bg_surface->format, 0x00, 0x80, 0xff, 0xff);
-	bg_colors[1].second = SDL_MapRGBA(bg_surface->format, 0x00, 0x40, 0x80, 0xff);
-	
-	// orange LCD
-	bg_colors[2].first = SDL_MapRGBA(bg_surface->format, 0xff, 0x80, 0x00, 0xff);
-	bg_colors[2].second = SDL_MapRGBA(bg_surface->format, 0x80, 0x40, 0x00, 0xff);
-
-	renderBackground(bg_colors[0].first, bg_colors[0].second);
-
-	// initialize game
-	difficulty = EASY_PEASY;
-	initialize();
 }
 
 
-// destructor
-Game::~Game()
+Game::~Game ( void )
 {
-	SDL_FreeSurface(pixels);
-	SDL_FreeSurface(mix_surface_1);
-	SDL_FreeSurface(mix_surface_2);
-	SDL_FreeSurface(bg_surface);
+	delete _data;
+	delete _input;
+	delete _graphics;
+	delete _playfield;
+	delete _ticks;
 }
 
 
-// initialize for new game
-void Game::initialize()
+void Game::play ( void )
 {
-	// set number of mines
-	switch(difficulty)
+	uint8_t kaboom = 0;
+	bool is_running = true;
+
+
+	while ( is_running == true )
 	{
-		case EASY_PEASY:
-		default:
-			mines = 30;
+		// start frame
+		_ticks->start ( );
+
+		// update input buffers
+		_input->update ( );
+
+		// check for exit
+		if ( _input->isSet ( EXIT ) == true )
+		{
+			is_running = false;
 			break;
-		case I_LIKE_IT_SPICY:
-			mines = 60;
-			break;
-		case WHY_SO_SERIOUS:
-			mines = 90;
-			break;
-	}
-
-	// initialize bools
-	is_playing = true;
-	got_exploded = false;
-	
-	// reset play stats
-	correctly_placed_flags = 0;
-	placed_flags = 0;
-
-	// genrate new map
-	generateMap();
-
-	// current message
-	current_message = 0;
-
-	// render
-	renderWindow();
-
-}
-
-// build new game map
-void Game::generateMap()
-{
-	// initialize lower half (first)
-	/*
-		0: empty space
-		1 - 8: proximity count space
-		9: mine
-		A: exploded mine
-	*/
-	
-	for(int i = 0; i < 400; i++)
-	{
-		map[i].first = 0; // lower (see details below)
-		map[i].second = 1; // upper (see details above)
-	}
-
-	// initialize upper half (second)
-	/* 	
-		0: not shown
-		1: shown
-		2: shown with flag
-		3: shown with incorrect flag
-	*/
-
-
-	// C++ Standard 11 <random>
-	std::random_device r;
-	std::mt19937 generated(r());
-	std::uniform_int_distribution<> d(0, 399);
-
-	for(int i = 0; i < mines; i++)
-	{
-		int x = d(generated);
-		while(map[x].first != 0)
-			x = d(generated);
-		map[x].first = 9;
+		}
 		
-	}
-
-	// proximity
-	for(int row = 0; row < 20; row++)
-	{
-		for(int col = 0; col < 20; col++)
+		// check for function reset keys
+		checkFunctionResets ( );
+		
+		// check for mouse click (left)
+		if ( _input->isSet ( MOUSE_BUTTON_LEFT ) == true )
 		{
-			if(map[(row * 20) + col].first == 0)
+			// is the click on the playfield?
+			if ( _input->isMouseInBounds ( 0, 0, RENDER_WIDTH, RENDER_WIDTH ) )
 			{
-				// if cell is a space count neighbors
-				int c = 0;
-				for(int rn = -1; rn < 2; rn++)
-				{
-					for(int cn = -1; cn < 2; cn++)
-					{
-						if(((row + rn) >=0) && ((row + rn) < 20))
-						{
-							if(((col + cn) >=0) && ((col + cn) < 20))
-							{
-								if(map[(((row + rn) * 20) + (col + cn))].first == 9)
-								{
-									c++;
-								}
-							}
-						}
-					}
-				}
-				map[(row * 20) + col].first = c;
+				kaboom = handleLeftClick ( );
 			}
 		}
-	}
-
-	/*
-	// display lower map (console)
-	for(int i = 0; i < 400; i++)
-	{
-		if((i % 20) == 0)
-			std::cout << '\n';
-		std::cout << map[i].first;
-	}
-	*/
-	
-}
-
-// main game loop
-void Game::play()
-{
-	while(is_running)
-	{
-		// get input
-		while(SDL_PollEvent(&event) > 0)
+		
+		// check for mouse click (right)
+		if ( _input->isSet ( MOUSE_BUTTON_RIGHT ) )
 		{
-			if(event.type == SDL_QUIT)
+			if ( _input->isMouseInBounds ( 0, 0, RENDER_WIDTH, RENDER_WIDTH ) )
 			{
-				is_playing = false;
-				is_running = false;
-			}
-			else if(event.type == SDL_KEYDOWN)
-			{
-				// F1 reset to difficulty EASY PEASY
-				if(event.key.keysym.sym == SDLK_F1)
-				{
- 
-					difficulty = EASY_PEASY;
-					initialize();
-				}
-				// F2 reset to difficulty I LIKE IT SPICY
-				if(event.key.keysym.sym == SDLK_F2)
-				{
-					difficulty = I_LIKE_IT_SPICY;
-					initialize();
-				}
-				// F3 reset to difficulty WHY SO SERIOUS?
-				if(event.key.keysym.sym == SDLK_F3)
-				{
-					difficulty = WHY_SO_SERIOUS;
-					initialize();
-				}
-				// F5 default BG color
-				if(event.key.keysym.sym == SDLK_F5)
-				{
-					changeBackgroundColor(0);
-				}
-				// F6 blue BG color
-				if(event.key.keysym.sym == SDLK_F6)
-				{
-					changeBackgroundColor(1);
-				}
-				// F7 default BG color
-				if(event.key.keysym.sym == SDLK_F7)
-				{
-					changeBackgroundColor(2);
-				}
-				// F9 reset to current difficulty
-				if(event.key.keysym.sym == SDLK_F9)
-				{
-					initialize();
-				}
-				// PRINTSCREEN to save screenshot
-				if(event.key.keysym.sym == SDLK_F12)
-				{
-					screenshot();
-				}
-			}
-			else if(event.type == SDL_MOUSEBUTTONDOWN)
-			{
-				if(is_playing)
-				{
-					// ONLY IF IN GAME
-					std::pair<int, int> pin; // story (x, y)
-					pin.first = event.button.x;
-					pin.second = event.button.y;
-					int pinned_tile = getTile(pin.first, pin.second);
-					if(event.button.button == SDL_BUTTON_LEFT)
-					{ 
-						// LEFT BUTTON
-						if(pinned_tile > -1)
-						{
-							if(sweepCell(pinned_tile) == 9)
-							{
-								map[pinned_tile].first = 11;
-								for(int i = 0; i < 400; i++)
-								{
-									if(map[i].first == 9)
-									{
-										if(map[i].second == 2)
-											map[i].first = 10;
-										map[i].second = 0;
-									}
-									else
-									{
-										if(map[i].second == 2)
-											map[i].second = 3;
-									}
-								}
-								current_message = 2;	
-								is_playing = false;
-								got_exploded = true;
-							}
-							renderWindow();
-						}
-					}
-					else
-					{
-						// RIGHT BUTTON
-						if(pinned_tile > -1)
-						{
-							flagCell(pinned_tile);
-							if(correctly_placed_flags == mines)
-							{
-								current_message = 1;
-								is_playing = false;
-							}
-							renderWindow();
-						}
-					}
-				}
+				handleRightClick ( );
 			}
 		}
+
+		// game over checks
+		if ( kaboom == 1 )
+		{
+			// death by mine
+			explode ( );
+
+			// reset the trigger
+			kaboom = 0;
+		}
+
+		if ( isWin ( ) == true )
+		{
+			victory ( );
+		}
+
+		// render game
+		_graphics->render ( _playfield, _data );
+
+		// end frame
+		_ticks->end ( );
 	}
 }
 
-// convert x, y coords to a tile position
-int Game::getTile(int x, int y)
-{
-	x = x / 32;
-	y = y / 32;
-	return (y * 20 + x);
-}
 
-// main rendering method
-void Game::renderWindow()
+uint8_t Game::handleLeftClick ( void )
 {
-	SDL_Rect position;
-	position.w = position.h = 32;
+	uint16_t x = _input->getTileX ( );
+	uint16_t y = _input->getTileY ( );
 
-	Uint32 cx = SDL_MapRGBA(pixels->format, 0x00, 0xff, 0xff, 0xff);
-	SDL_FillRect(pixels, NULL, cx);
-	
-	// render map to pixels surface
-	for(int row = 0; row < 20; row++)
+
+	// do nothing if game over
+	if ( _state == GAME_ENDED )
 	{
-		for(int col = 0; col < 20; col++)
-		{
-			position.x = col * 32;
-			position.y = row * 32;
-			if(map[row * 20 + col].second == 0)
-			{
-				switch(map[row * 20 + col].first)
-				{
-					case 0:
-					default:
-						// space
-						SDL_BlitSurface(tiles, &sprites[6], pixels, &position);
-						break;
-					case 1:
-						SDL_BlitSurface(tiles, &sprites[7], pixels, &position);
-						break;
-					case 2:
-						SDL_BlitSurface(tiles, &sprites[8], pixels, &position);
-						break;
-					case 3:
-						SDL_BlitSurface(tiles, &sprites[9], pixels, &position);
-						break;
-					case 4:
-						SDL_BlitSurface(tiles, &sprites[10], pixels, &position);
-						break;
-					case 5:
-						SDL_BlitSurface(tiles, &sprites[11], pixels, &position);
-						break;
-					case 6:
-						SDL_BlitSurface(tiles, &sprites[12], pixels, &position);
-						break;
-					case 7:
-						SDL_BlitSurface(tiles, &sprites[13], pixels, &position);
-						break;	
-					case 8:
-						SDL_BlitSurface(tiles, &sprites[14], pixels, &position);
-						break;
-					case 9:
-						SDL_BlitSurface(tiles, &sprites[4], pixels, &position);
-						break;
-					case 10:
-						SDL_BlitSurface(tiles, &sprites[3], pixels, &position);
-						break;
-					case 11:
-						SDL_BlitSurface(tiles, &sprites[5], pixels, &position);
-						break;
-
-				}
-			}
-			else
-			{
-				switch(map[row * 20 + col].second)
-				{
-					case 1:
-					default:
-						SDL_BlitSurface(tiles, &sprites[0], pixels, &position);
-						break;
-					case 2:
-						SDL_BlitSurface(tiles, &sprites[1], pixels, &position);
-						break;
-					case 3:
-						SDL_BlitSurface(tiles, &sprites[2], pixels, &position);
-						break;
-				}
-			}
-		}
+		return 0;
 	}
 
-	// render messages to pixels surface
-	renderStats();
-
-	/*
-	// draw border
-	Uint32* pp = (Uint32*) pixels->pixels; // direct access to plot to pixels surface
-	Uint32 black = SDL_MapRGBA(pixels->format, 0x00, 0x00, 0x00, 0xff);
-	for(int i = 0; i < 640; i++)
-	{	
-		pp[i] = black;
-		pp[640 * 640 + i] = black;
-		pp[640 * i] = black;
-		pp[640 * i + 639] = black;
-	}
-	*/
-
-	/*
-	Uint32* ms1 = (Uint32*) mix_surface_1->pixels; // read data
-	Uint32* ms2 = (Uint32*) mix_surface_2->pixels; // write data
-	Uint32 p; // pixel
-	*/
-
-	Uint32* ms2_pixels = (Uint32*) mix_surface_2->pixels; // write data
-
-	// render bg surface to mix surface 1
-	SDL_BlitSurface(bg_surface, NULL, mix_surface_1, NULL);
-	position.w = width;
-	position.h = height;
-	for(int offset = 2; offset >= 0; offset--)
+	// only first move, generate playfield
+	if ( _state == PLAYING_FIRST_MOVE )
 	{
-		position.x = position.y = offset;
-		if(offset == 0)
-		{
-			// soften/blur shadow maps and background gradient 
-			blurSurface(mix_surface_1, mix_surface_2);
-			
-			// render pixels surface LCD image on top of blurred shadows
-			SDL_SetSurfaceAlphaMod(pixels, 255);
-			SDL_BlitSurface(pixels, NULL, mix_surface_2, &position);
-		}
-		else
-		{
-			// render pre-blurred shadow maps
-			SDL_SetSurfaceAlphaMod(pixels, 96 / offset);
-			SDL_BlitSurface(pixels, NULL, mix_surface_1, &position);
-		}	
+		_playfield->generatePlayfield ( x, y, _data->getNumberOfMines ( ) );
+		_state = PLAYING;
 	}
 
-	// render
-	SDL_UpdateTexture(render_texture, NULL, ms2_pixels, width * sizeof(Uint32));
-	SDL_RenderClear(renderer);
-	SDL_RenderCopy(renderer, render_texture, NULL, NULL);
-	SDL_RenderPresent(renderer);
-}
+	// both first move and in progress
+	sweep ( ( int16_t ) x, ( int16_t ) y );
 
-int Game::sweepCell(int cell)
-{
-	if(map[cell].second == 1)
+	// check for mine
+	if ( _playfield->getBelow ( x, y ) == MINE )
 	{
-		// if user clicked on dirt do...
-		map[cell].second = 0; // expose dirt
-		if(map[cell].first == 0)
-		{
-			if(cell > 19)
-			{ // NOT on first row
-				if((cell % 20) != 0)
-				{ // NOT on left-most edge
-					sweepCell(cell - 21); // sweep upper-left corner
-				}
-				if(((cell + 1) % 20) != 0)
-				{ // NO on right-most edge
-					sweepCell(cell - 19); // sweep upper_right corner
-				}
-				sweepCell(cell - 20); // sweep above
-			}
-			if(cell < 380)
-			{ // NOT on bottom row
-				if((cell % 20) != 0)
-				{ // NOT on left-most edge
-					sweepCell(cell + 19); // sweep lower-left corner
-				}
-				if(((cell + 1) % 20) !=0)
-				{ // NOT on right-most edge
-					sweepCell(cell + 21); // sweep lower-right corner
-				}
-				sweepCell(cell + 20); // sweep below
-			}
-			if((cell % 20) != 0)
-			{ // NOT on left-most edge
-				sweepCell(cell - 1); // sweep left
-			}
-			if(((cell + 1) % 20) !=0)
-			{ // NOT on right-most edge
-				sweepCell(cell + 1); // sweep right
-			}
-		}
-		else if(map[cell].first == 9)
-			return 9;
-		else;
+		_playfield->setBelow ( x, y, EXPLODED_MINE );
+		return 1;
 	}
-	// default
-	return -1;
+
+	return 0;
 }
 
-// handle user attempt to flag cell
-void Game::flagCell(int cell)
+
+void Game::handleRightClick ( void )
 {
-	if(map[cell].second == 1)
-	{ // if dirt...
-		if(placed_flags < mines)
-		{
-			map[cell].second = 2;
-			placed_flags++;
-			if(map[cell].first == 9)
-				correctly_placed_flags++;
-		}
-	}
-	else if(map[cell].second == 2)
+	uint8_t x = _input->getTileX ( );
+	uint8_t y = _input->getTileY ( );
+
+
+	// do nothing if game over
+	if ( ( _state == GAME_ENDED ) || ( _state == PLAYING_FIRST_MOVE ) )
 	{
-		map[cell].second = 1;
-		placed_flags--;
-		if(map[cell].first == 9)
-			correctly_placed_flags--;
-	}
-	
-	/*
-	std::cout << "Placed Flags: " << placed_flags << '\n';
-	std::cout << "Correctly Placed Flags: " << correctly_placed_flags << '\n';
-	std::cout << "Mines: " << mines << '\n';
-	*/
-}
-
-void Game::screenshot()
-{
-	// get current time
-	time_t current_time;
-	struct tm* time_info;
-	char filename[30]; // output filename
-	time(&current_time);
-	time_info = localtime(&current_time);
-	strftime(filename, 31, "screenshot_%Y%m%d-%H%M%S.bmp", time_info);
-	
-	// save screenshot
-	SDL_SaveBMP(mix_surface_2, filename);
-}
-
-void Game::renderStats()
-{
-	SDL_Rect p;
-	p.w = p.h = 32;
-	p.y = 640;
-	int value = mines - placed_flags;
-	for(int c = 0; c < 2; c++)
-	{
-		int d = value % 10;
-		if(((c == 1) && (d > 0)) || (c == 0))
-		{
-			p.x = width - ((c + 1) * 32);
-			SDL_BlitSurface(tiles, &sprites[20 + d], pixels, &p); 
-	 		value = value / 10;
-		}
-	}
-
-	// render flag
-	p.x = 544;
-	SDL_BlitSurface(tiles, &sprites[19], pixels, &p);
-	
-	// render difficulty
-	p.x = 512;
-	SDL_BlitSurface(tiles, &sprites[15 + difficulty], pixels, &p);
-
-	// display current message
-	p.x = 32;
-	SDL_BlitSurface(tiles, &sprites[30 + current_message], pixels, &p);
-	
-}
-
-void Game::blurSurface(SDL_Surface* source, SDL_Surface* destination)
-{
-	// source must be smaller or equal to size of destination
-	if((source->w > destination->w) || (source->h > destination->h))
 		return;
+	}
 
-	Uint32* sp = (Uint32*) source->pixels; // read data
-	Uint32* dp = (Uint32*) destination->pixels; // write data
-	Uint32 p; // pixel
-
-	int w = source->w;
-	int h = source->h;
-
-	// average blur mix surface 1 to mix surface 2 (for LCD shadow effect)
-	for(int i_row = 0; i_row < h; i_row++)
+	if ( _playfield->getAbove ( x, y ) == DIRT )
 	{
-		for(int i_col = 0; i_col < w; i_col++)
+		// can we place a flag?
+		if ( _data->setFlag ( ) == true )
 		{
-			int c = 0; // count
-			int r_sum = 0;
-			int g_sum = 0;
-			int b_sum = 0;
-			Uint8 r, g, b;
-			for(int s_row = -1; s_row < 2; s_row++)
-			{
-				for(int s_col = -1; s_col < 2; s_col++)
-				{
-					if(((i_row + s_row) >= 0) && ((i_row + s_row) < h))
-					{
-						if(((i_col + s_col) >= 0) && ((i_col + s_col) < w))
-						{
-							p = sp[((i_row + s_row) * w) + i_col + s_col];
-							SDL_GetRGB(p, source->format, &r, &g, &b);
-							r_sum += int(r);
-							g_sum += int(g);
-							b_sum += int(b);
-							c++;
-						}
-					}
-				}
-			}
-
-			// average sum
-			r = (r_sum / c);
-			g = (g_sum / c);
-			b = (b_sum / c);
-
-			p = SDL_MapRGB(destination->format, r, g, b);
-			dp[(i_row * w) + i_col] = p;
+			_playfield->setAbove ( x, y, FLAG );
 		}
+	}
+	else if ( _playfield->getAbove ( x, y ) == FLAG )
+	{
+		if ( _data->restoreFlag ( ) == true )
+		{
+			_playfield->setAbove ( x, y, DIRT );
+		}
+	}
+	else;
+}
+
+
+void Game::checkFunctionResets ( void )
+{
+	bool fk_pressed = false;
+
+
+	if ( _input->isSet ( KEY_F1 ) == true )
+	{
+		_data->setDifficulty ( EASY_PEASY );
+		fk_pressed = true;
+	}
+
+	if ( _input->isSet ( KEY_F2 ) == true )
+	{
+		_data->setDifficulty ( I_LIKE_IT_SPICY );
+		fk_pressed = true;
+	}
+
+	if ( _input->isSet ( KEY_F3 ) == true )
+	{
+		_data->setDifficulty ( WHY_SO_SERIOUS );
+		fk_pressed = true;
+	}
+
+	if ( _input->isSet ( KEY_F9 ) )
+	{
+		_data->reset ( );
+		fk_pressed = true;
+	}
+
+	if ( fk_pressed == true )
+	{
+		_playfield->clearPlayfield ( );
+		_state = PLAYING_FIRST_MOVE;
 	}
 }
 
-// this function fills the bg_surface with a radial gradient
-void Game::renderBackground(Uint32 s_color, Uint32 e_color)
+
+void Game::sweep ( int16_t x, int16_t y )
 {
-	int w = width / 2; // for quarter chunking
-	int h = height / 2; // ditto
-	Uint32 pixel_color; // read-write pixel color
-	double degrees, radians, tick;
-	int radius = 512; // adjust this for longer or shorter spread
-	Uint32* pixels = (Uint32*) bg_surface->pixels; // pointer to surface pixels
-	Uint8 r, g, b; // linear gradient RGB
-	Uint8 sr, sg, sb; // start color RGB
-	Uint8 er, eg, eb; // end color RGB
-	SDL_GetRGB(s_color, bg_surface->format, &sr, &sg, &sb); // obtain individual RGB
-	SDL_GetRGB(e_color, bg_surface->format, &er, &eg, &eb); // ditto
+	int16_t c;
+	int16_t r;
+
+
+	// out of bounds? return
+	if ( ( x < 0 ) || ( x > ( _playfield->getWidth ( ) - 1 ) ) )
+	{
+		return;
+	}
 	
-	// clear background to end color
-	for(int row = 0; row < height; row++)
+	if ( ( y < 0 ) || ( y > ( _playfield->getHeight ( ) - 1 ) ) )
 	{
-		for(int col = 0; col < width; col++)
+		return;
+	}
+
+	// if playfield is already exposed, do nothing
+	if ( _playfield->getAbove ( x, y ) == EXPOSED )
+	{
+		return;
+	}
+
+	if ( _playfield->getAbove ( x, y ) == FLAG )
+	{
+		_data->restoreFlag ( );
+	}
+
+	// expose playfield
+	_playfield->setAbove ( x, y, EXPOSED );
+
+	// if not empty below, we are done
+	if ( _playfield->getBelow ( x, y ) > EMPTY )
+	{
+		return;
+	}
+
+	for ( r = -1; r < 2; r++ )
+	{
+		for ( c = -1; c < 2; c++ )
 		{
-			pixels[row * width + col] = e_color;
+			sweep ( x + c, y + r );
 		}
 	}
-
-	// paint quarter radial gradient in lower right corner
-	for(degrees = 0; degrees <= 90; degrees += .01)
-	{
-		for(int steps = 0; steps < radius; steps++)
-		{
-			tick = (double) steps / (double) (radius - 1);
-			r = ((double) sr * (1 - tick)) + ((double) er * tick);
-			g = ((double) sg * (1 - tick)) + ((double) eg * tick);
-			b = ((double) sb * (1 - tick)) + ((double) eb * tick);
-			pixel_color = SDL_MapRGBA(bg_surface->format, r, g, b, 0xff);
-			radians = degrees / 180 * 3.14159265359;
-			int x = cos(radians) * steps;
-			int y = sin(radians) * steps;
-			if(((x > 0) && (x < width / 2)) && ((y > 0) && (y < height / 2)))
-				pixels[(y + h) * width + x + (w)] = pixel_color;
-		}
-	}
-
-	// top edge fix
-	for(int c = w; c < width ; c++)
-	{
-		pixel_color = pixels[(h + 1) * width + c];
-		pixels[(h * width) + c] = pixel_color;
-	}
-
-	// left edge fix
-	for(int r = h; r < height; r++)
-	{
-		pixel_color = pixels[width * r + w + 1];
-		pixels[width * r + w] = pixel_color;
-	}
-
-	// mirror quarter to lower left corner
-	for(int r = 0; r < h; r++)
-	{
-		for(int c = 0; c < w; c++)
-		{
-			pixel_color = pixels[((r + h) * width) + (c + w)];
-			pixels[(r + h) * width + (w - 1 - c)] = pixel_color;
-		}
-	}
-
-	// mirror bottom to top
-	for(int r = 0; r < h; r++)
-	{
-		for(int c = 0; c < width; c++)
-		{
-			pixel_color = pixels[((r + h) * width) + c];
-			pixels[((h - 1 - r) * width) + c] = pixel_color;
-		}
-	}
-
-	// done. =)
 }
 
-void Game::changeBackgroundColor(int index)
+void Game::calculateCorrectFlags ( void )
 {
-	renderBackground(bg_colors[index].first, bg_colors[index].second);
-	renderWindow();
+	uint16_t i;
+
+
+	_correct_flags = 0;
+
+	for ( i = 0; i < _playfield->getArea ( ); i++ )
+	{
+		if ( ( _playfield->getAbove ( i ) == FLAG ) && ( _playfield->getBelow ( i ) == MINE ) )
+		{
+			_correct_flags++;
+		}
+	}
 }
+
+
+bool Game::isWin ( void )
+{
+	calculateCorrectFlags ( );
+
+	if ( _correct_flags == _data->getNumberOfMines ( ) )
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+void Game::explode ( void )
+{
+	_data->setMessage ( YOU_GOT_EXPLODED );
+	_playfield->explodePlayfield ( );
+	_state = GAME_ENDED;
+}
+
+
+void Game::victory ( void )
+{
+	_data->setMessage ( YOU_FLAGGED_ALL_THE_MINES );
+	_state = GAME_ENDED;
+}
+
+

@@ -1,75 +1,51 @@
+/*
+** Don't Get Exploded!
+** Copyright 2022, Brian Puthuff
+**
+** See LICENSE.md for details.
+*/
+
+
 #ifndef GAME_H
 #define GAME_H
 
+
 #include <iostream>
 #include "SDL2/SDL.h"
-#include <utility>
-#include <random>
-#include <ctime>
+#include "data.h"
+#include "defines.h"
+#include "input.h"
+#include "graphics.h"
+#include "playfield.h"
+#include "ticks.h"
 
-// Don't Get Exploded!
-// by Brian Puthuff
-
-// game.h
-// Updated: Sun Apr  3 01:21:56 PDT 2016
-
-enum { EASY_PEASY, I_LIKE_IT_SPICY, WHY_SO_SERIOUS };
 
 class Game
 {
 	public:
-		Game(SDL_Window* window, SDL_Renderer* renderer, SDL_Surface* tiles);
-		~Game();
-		void play();
+	Game ( void );
+	~Game ( void );
+	
+	void play ( void );
+	
 	private:
-		int width;
-		int height;
-		
-		// local pointers
-		SDL_Window* window;
-		SDL_Renderer* renderer;
-		SDL_Surface* tiles;
-		
-		// internal mixing and painting
-		SDL_Texture* render_texture;
-		SDL_Surface* pixels;
-		SDL_Surface* mix_surface_1;
-		SDL_Surface* mix_surface_2;
-		SDL_Surface* bg_surface;
+	uint8_t _state;
+	uint8_t _correct_flags;
+	Data *_data;
+	Input *_input;
+	Graphics  *_graphics;
+	Playfield *_playfield;
+	Ticks *_ticks;
 
-		// map <lower, upper>
-		std::pair<int, int> map[400];
-
-		// key variables
-		int correctly_placed_flags;
-		int placed_flags;
-		int mines;
-		int difficulty;
-		int current_message;
-
-		// sprites (tiles)
-		SDL_Rect sprites[33];
-
-		// for radial gradient <1st color, 2nd color>
-		std::pair<Uint32, Uint32> bg_colors[3];
-
-		SDL_Event event;
-		bool is_running;
-		bool is_playing;
-		bool got_exploded;
-
-		// game functions
-		void initialize(void);
-		void generateMap();
-		void renderWindow(void);
-		void renderStats(void);
-		void changeBackgroundColor(int index);
-		void renderBackground(Uint32 color_1, Uint32 color_2);
-		void flagCell(int cell);
-		int sweepCell(int cell);
-		void blurSurface(SDL_Surface* source, SDL_Surface* destination);
-		void screenshot(void);
-		int getTile(int x, int y);
+	uint8_t handleLeftClick ( void );
+	void handleRightClick ( void );
+	void checkFunctionResets ( void );
+	void sweep ( int16_t x, int16_t y );
+	void calculateCorrectFlags ( void );
+	bool isWin ( void );
+	void explode ( void );
+	void victory ( void );
 };
+
 
 #endif

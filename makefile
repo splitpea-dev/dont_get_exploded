@@ -1,8 +1,15 @@
 # makefile
-# updated: Mon Mar 21 23:06:50 PDT 2016
+# updated: Wed Nov 23 11:35:06 PM PST 2022
+
+
+# Don't Get Exploded!
+# Copyright 2022, Brian Puthuff
+#
+# See LICENSE.md for details.
+
 
 # files to compile
-OBJECTS = main.cpp game.cpp
+OBJECTS = main.cpp data.cpp input.cpp game.cpp graphics.cpp playfield.cpp ticks.cpp
 
 # compiler
 CXX = g++
@@ -11,7 +18,7 @@ CXX = g++
 FLAGS = -Wall -std=c++11
 
 # linker flags
-LINKER_FLAGS = -lSDL2
+LINKER_FLAGS = -lSDL2 -lSDL2_image
 
 #executable name
 OUT = dge
