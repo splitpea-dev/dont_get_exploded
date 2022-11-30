@@ -20,8 +20,11 @@ class Ticks
 	Ticks      ( void );
 	~Ticks     ( void );
 
-	void start ( void );
-	void end   ( void );
+	void
+	start ( void );
+	
+	void
+	end ( void );
 
 	private:
 	uint64_t _pc_start;

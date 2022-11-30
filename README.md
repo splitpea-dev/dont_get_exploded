@@ -8,7 +8,7 @@ Start the game by selecting a random tile. If the underlying feature is an empty
 
 If you expose a tile that has a mine underneath, the game is over. The goal is to correctly flag all assumed mine locations. A counter in the lower right corner indicates how many flags are available to place (based on the difficulty setting). If there are no more available flags to place, and the game hasn't ended in your favor, then some placed flags are incorrect. You may remove placed flags at any time.
 
-![Sample Screenshot](./sample_screenshot.png)
+![Sample Screenshot](./sample_screenshot.png);
 
 ## Input
 
@@ -24,7 +24,33 @@ The game is set to medium difficulty by default. You can reset the game to an al
 
 ``F9``- New game (**RESET**) at the currently selected difficulty setting.
 
+The game features sixteen (4-color) palettes. To cycle through the palettes, use the following keys:
+
+``, (comma)`` - Switch to previous palette in the palette list. This will loop to the last palette if you are on palette zero.
+
+``. (period)`` - Switch to next palette in the palette list. This will loop to the first palette if you are on the last palette.
+
 To exit the game completely, close the game window.
+
+<br>
+
+## Customization
+
+The tile sheet is just a PNG image with art featuring only four shades of gray. If you change the art in the tile sheet, be sure to only use the following colors:
+
+``COLOR 0: R 32, G 32, B 32; HEX 202020``
+
+``COLOR 1: R 96, G 96, B 96; HEX 606060``
+
+``COLOR 2: R 160, G 160, B 169; HEX a0a0a0``
+
+``COLOR 3: R 224, G 224, B 224; HEX e0e0e0``
+
+Color 0 is considered the darkest shade and color 3, the brightest. At runtime, the program looads this image and converts this palette to an indexed surface, which is used for palette swaps. Palettes can be added, removed, and modified in the ``palettes.hex`` file. When the program reads this file, it ignores blank lines and comment lines beginning with a `#`.
+
+Each palette must have its color entries, starting with color 0, at the start of a new line. In order to support the number of palettes contained in the ``palettes.hex`` file, the ``PALETTES_LIMIT`` definition in the ``defines.h`` file must be edited with the proper count. Please note that this value must be within within 1 (minimum) to 16 (maximumm). As a safety precaution, the program generates a default palette for every palette in the vector. These default values are overridden by the values stored in the ``palettes.hex`` file, assuming there are no errors.
+
+Note: Palettes in the current build of this repository are sourced from various artist featured on Lo-Spec.
 
 <br>
 

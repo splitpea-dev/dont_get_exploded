@@ -65,7 +65,15 @@
 #define KEY_F2                    ( uint8_t ) 3
 #define KEY_F3                    ( uint8_t ) 4
 #define KEY_F9                    ( uint8_t ) 5
-#define EXIT                      ( uint8_t ) 6
+#define KEY_TAB                   ( uint8_t ) 6
+#define KEY_COMMA		  ( uint8_t ) 7
+#define KEY_PERIOD                ( uint8_t ) 8 
+#define EXIT                      ( uint8_t ) 9
 
+// PALETTES_H
+// palette limits
+#define PALETTES_FILENAME         "./palettes.hex"
+#define PALETTES_LIMIT            ( uint8_t ) 16
+#define COLORS_LIMIT              ( uint8_t ) 4
 
 #endif

@@ -20,21 +20,32 @@ class Data
 	Data ( void );
 	~Data ( void );
 
-	void reset ( void );
+	void
+	reset ( void );
+	 
+	void
+	setDifficulty ( uint8_t setting );
 	
-	// difficulty settings 
-	void setDifficulty ( uint8_t setting );
-	uint8_t getDifficulty ( void );
-	uint8_t getNumberOfMines ( void ); // set by difficulty
+	uint8_t
+	getDifficulty ( void );
+	
+	uint8_t
+	getNumberOfMines ( void );
 
-	// flag business
-	uint8_t getAvailableFlags ( void ); // initially set by difficulty
-	bool setFlag ( void ); // subtracts from remaining
-	bool restoreFlag ( void ); // adds to remaining
+	uint8_t
+	getAvailableFlags ( void );
+	
+	bool
+	setFlag ( void );
+	
+	bool
+	restoreFlag ( void );
 
-	// display message
-	void setMessage ( uint8_t message_id );
-	uint8_t getMessage ( void );
+	void
+	setMessage ( uint8_t message_id );
+	
+	uint8_t
+	getMessage ( void );
 
 	private:
 	uint8_t _difficulty;

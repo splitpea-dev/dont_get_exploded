@@ -26,7 +26,8 @@ class Game
 	Game ( void );
 	~Game ( void );
 	
-	void play ( void );
+	void
+	play ( void );
 	
 	private:
 	uint8_t _state;
@@ -37,14 +38,32 @@ class Game
 	Playfield *_playfield;
 	Ticks *_ticks;
 
-	uint8_t handleLeftClick ( void );
-	void handleRightClick ( void );
-	void checkFunctionResets ( void );
-	void sweep ( int16_t x, int16_t y );
-	void calculateCorrectFlags ( void );
-	bool isWin ( void );
-	void explode ( void );
-	void victory ( void );
+	void
+	handlePaletteChange ( void );
+	
+	uint8_t
+	handleLeftClick ( void );
+	
+	void
+	handleRightClick ( void );
+	
+	void
+	checkFunctionResets ( void );
+	
+	void
+	sweep ( int16_t x, int16_t y );
+	
+	void
+	calculateCorrectFlags ( void );
+	
+	bool
+	isWin ( void );
+	
+	void
+	explode ( void );
+	
+	void
+	victory ( void );
 };
 
 

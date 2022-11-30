@@ -23,7 +23,8 @@ Input::~Input ( void )
 }
 
 
-void Input::update ( void )
+void
+Input::update ( void )
 {
 	SDL_Event event;
 
@@ -56,7 +57,23 @@ void Input::update ( void )
 				{
 					_flag_f9 = true;
 				}
+				
+				if ( event.key.keysym.sym == SDLK_COMMA )
+				{
+					_flag_comma = true;
+				}
+
+				if ( event.key.keysym.sym == SDLK_PERIOD )
+				{
+					_flag_period = true;
+				}
+				
+				if ( event.key.keysym.sym == SDLK_TAB )
+				{
+					_flag_tab = true;
+				}
 				break;
+
 
 			case SDL_KEYUP:
 				if ( event.key.keysym.sym == SDLK_F1 )
@@ -77,6 +94,21 @@ void Input::update ( void )
 				if ( event.key.keysym.sym == SDLK_F9 )
 				{
 					_flag_f9 = false;
+				}
+				
+				if ( event.key.keysym.sym == SDLK_COMMA )
+				{
+					_flag_comma = false;
+				}
+
+				if ( event.key.keysym.sym == SDLK_PERIOD )
+				{
+					_flag_period = false;
+				}
+				
+				if ( event.key.keysym.sym == SDLK_TAB )
+				{
+					_flag_tab = false;
 				}
 				break;
 
@@ -118,13 +150,17 @@ void Input::update ( void )
 }
 
 
-void Input::resetFlags ( void )
+void
+Input::resetFlags ( void )
 {
 	_flag_exit = false;
 	_flag_f1 = false;
 	_flag_f2 = false;
 	_flag_f3 = false;
 	_flag_f9 = false;
+	_flag_comma = false;
+	_flag_period = false;
+	_flag_tab = false;
 	_mouse_button_left = false;
 	_mouse_button_right = false;
 	_mouse_x = 0;
@@ -132,7 +168,8 @@ void Input::resetFlags ( void )
 }
 
 
-bool Input::isSet ( uint8_t trigger )
+bool
+Input::isSet ( uint8_t trigger )
 {
 	switch ( trigger )
 	{
@@ -184,6 +221,29 @@ bool Input::isSet ( uint8_t trigger )
 			}
 			break;
 
+		case KEY_COMMA:
+			if ( _flag_comma == true )
+			{
+				_flag_comma = false;
+				return true;
+			}
+			break;
+
+		case KEY_PERIOD:
+			if ( _flag_period == true )
+			{
+				_flag_period = false;
+				return true;
+			}
+			break;
+
+		case KEY_TAB:
+			if ( _flag_tab == true )
+			{
+				_flag_tab = false;
+				return true;
+			}
+			break;
 		case EXIT:
 			return _flag_exit;
 			break;
@@ -196,31 +256,36 @@ bool Input::isSet ( uint8_t trigger )
 }
 
 
-int16_t Input::getMouseX ( void )
+int16_t
+Input::getMouseX ( void )
 {
 	return _mouse_x;
 }
 
 
-int16_t Input::getMouseY ( void )
+int16_t
+Input::getMouseY ( void )
 {
 	return _mouse_y;
 }
 
 
-uint16_t Input::getTileX ( void )
+uint16_t
+Input::getTileX ( void )
 {
 	return ( floor ( _mouse_x / 32 ) );
 }
 
 
-uint16_t Input::getTileY ( void )
+uint16_t
+Input::getTileY ( void )
 {
 	return ( floor ( _mouse_y / 32 ) );
 }
 
 
-bool Input::isMouseInBounds ( uint16_t x, uint16_t y, uint16_t w, uint16_t h )
+bool
+Input::isMouseInBounds ( uint16_t x, uint16_t y, uint16_t w, uint16_t h )
 {
 	if ( _mouse_x < x || _mouse_x > x + w )
 	{
@@ -236,9 +301,9 @@ bool Input::isMouseInBounds ( uint16_t x, uint16_t y, uint16_t w, uint16_t h )
 }
 
 
-void Input::setScaleFlag ( bool flip )
+void
+Input::setScaleFlag ( bool flip )
 {
 	_flag_2x = flip;
 }
-
 

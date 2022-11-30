@@ -21,19 +21,22 @@ Data::~Data ( void )
 }
 
 
-uint8_t Data::getNumberOfMines ( void )
+uint8_t
+Data::getNumberOfMines ( void )
 {
 	return _number_of_mines;
 }
 
 
-uint8_t Data::getDifficulty ( void )
+uint8_t
+Data::getDifficulty ( void )
 {
 	return _difficulty;
 }
 
 
-void Data::setDifficulty ( uint8_t setting )
+void
+Data::setDifficulty ( uint8_t setting )
 {
 	if ( setting > WHY_SO_SERIOUS )
 	{
@@ -57,20 +60,23 @@ void Data::setDifficulty ( uint8_t setting )
 }
 
 
-void Data::reset ( void )
+void
+Data::reset ( void )
 {
 	_message = DONT_GET_EXPLODED;
 	_available_flags = _number_of_mines;
 }
 
 
-uint8_t Data::getMessage ( void )
+uint8_t
+Data::getMessage ( void )
 {
 	return _message;
 }
 
 
-void Data::setMessage ( uint8_t setting )
+void
+Data::setMessage ( uint8_t setting )
 {
 	if ( setting > YOU_GOT_EXPLODED )
 	{
@@ -80,13 +86,15 @@ void Data::setMessage ( uint8_t setting )
 }
 
 
-uint8_t Data::getAvailableFlags ( )
+uint8_t
+Data::getAvailableFlags ( )
 {
 	return _available_flags;
 }
 
 
-bool Data::setFlag ( )
+bool
+Data::setFlag ( )
 {
 	if ( _available_flags > 0 )
 	{
@@ -97,9 +105,10 @@ bool Data::setFlag ( )
 }
 
 
-bool Data::restoreFlag ( void )
+bool
+Data::restoreFlag ( void )
 {
-	if ( _available_flags < ( _number_of_mines - 1 ) )
+	if ( _available_flags < _number_of_mines )
 	{
 		_available_flags++;
 		return true;

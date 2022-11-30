@@ -11,13 +11,28 @@
 
 Graphics::Graphics ( void )
 {
-	SDL_Surface *surface;
+	uint32_t r_mask;
+	uint32_t g_mask;
+	uint32_t b_mask;
+	uint32_t a_mask;
+	SDL_Surface *loaded_surface;
 
+
+	#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	r_mask = 0xff000000;
+	g_mask = 0x00ff0000;
+	b_mask = 0x0000ff00;
+	a_mask = 0x000000ff;
+	#else
+	r_mask = 0x000000ff;
+	g_mask = 0x0000ff00;
+	b_mask = 0x00ff0000;
+	a_mask = 0xff000000;
+	#endif
 
 	// determine best scale factor
 	_scaler = 1;
 	setIntegerScaler ( );
-	// std::cout << _scaler << std::endl;
 	
 	// create window and renderer
 	SDL_CreateWindowAndRenderer ( RENDER_WIDTH * _scaler, RENDER_HEIGHT * _scaler, SDL_WINDOW_SHOWN, &_window, &_renderer );
@@ -27,33 +42,58 @@ Graphics::Graphics ( void )
 	// set window title
 	SDL_SetWindowTitle ( _window, WINDOW_TITLE );
 
+	// palettes
+	_palette = 0;
+	_palettes = new Palettes ( PALETTES_LIMIT, COLORS_LIMIT );
+	_palettes->load ( PALETTES_FILENAME );
+
+
 	// load tiles and create texture
-	surface = IMG_Load ( TILES_FILENAME );
+	loaded_surface = IMG_Load ( TILES_FILENAME );
+	_surface = SDL_CreateRGBSurface ( 0, loaded_surface->w, loaded_surface->h, 8, 0, 0, 0, 0 );
+	_tiles_surface = SDL_CreateRGBSurface ( 0, _surface->w, _surface->h, 32, r_mask, g_mask, b_mask, a_mask );
+	copyToIndexedSurface ( loaded_surface );
+	SDL_FreeSurface ( loaded_surface );
+	SDL_SetPaletteColors ( _surface->format->palette, _palettes->getPalette ( _palette ), 0, 4 );
 	
-	// set color key
-	// NOTE: If your PNG source uses compression, color key may not work as intended as the colors may not match.
-	SDL_SetColorKey ( surface, SDL_TRUE, SDL_MapRGB ( surface->format, 0x00, 0xff, 0xff ) );
-
 	// create texture atlas
-	_texture = SDL_CreateTextureFromSurface ( _renderer, surface );
-
-	SDL_FreeSurface ( surface );
-
+	_texture = SDL_CreateTexture ( _renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, _surface->w, _surface->h );
+	upgradeSurfaceAndStream ( );
+	
 	// initialize clip rectangles
 	initializeClips ( );
+}
+
+void
+Graphics::displaySurfaceInformation ( SDL_Surface *surface )
+{
+	if ( surface == NULL )
+	{
+		return;
+	}
+
+	std::cout << "Flags: " << surface->flags << std::endl;
+	std::cout << "BytesPerPixel: " << ( int ) surface->format->BytesPerPixel << std::endl;
+	std::cout << "Pitch: " << surface->pitch << std::endl;
+	std::cout << "Width: " << surface->w << std::endl;
+	std::cout << "Height: " << surface->h << std::endl;
 }
 
 
 Graphics::~Graphics ( void )
 {
 	// free up SDL data structures
+	delete _palettes;
+	SDL_FreeSurface     ( _tiles_surface );
+	SDL_FreeSurface     ( _surface  ); 
 	SDL_DestroyTexture  ( _texture  );
 	SDL_DestroyRenderer ( _renderer );
 	SDL_DestroyWindow   ( _window   );
 }
 
 
-void Graphics::initializeClips ( void )
+void
+Graphics::initializeClips ( void )
 {
 	uint16_t i;
 
@@ -83,14 +123,16 @@ void Graphics::initializeClips ( void )
 }
 
 
-void Graphics::clearRenderer ( void )
+void
+Graphics::clearRenderer ( void )
 {
 	SDL_SetRenderDrawColor ( _renderer, 0x24, 0x3d, 0x5c, 0xff );
 	SDL_RenderClear ( _renderer );
 }
 
 
-void Graphics::render ( Playfield *playfield, Data *data )
+void
+Graphics::render ( Playfield *playfield, Data *data )
 {
 	clearRenderer ( );
 	renderPlayfield ( playfield );
@@ -99,7 +141,8 @@ void Graphics::render ( Playfield *playfield, Data *data )
 }
 
 
-void Graphics::renderData ( Data *data )
+void
+Graphics::renderData ( Data *data )
 {
 	uint8_t i;
 	SDL_Rect position;
@@ -148,7 +191,8 @@ void Graphics::renderData ( Data *data )
 }
 
 
-void Graphics::renderPlayfield ( Playfield *playfield )
+void
+Graphics::renderPlayfield ( Playfield *playfield )
 {
 	uint8_t i;
 	uint16_t x;
@@ -207,13 +251,15 @@ void Graphics::renderPlayfield ( Playfield *playfield )
 }
 
 
-uint16_t Graphics::getIntegerScaler ( void )
+uint16_t
+Graphics::getIntegerScaler ( void )
 {
 	return _scaler;
 }
 
 
-void Graphics::setIntegerScaler ( void )
+void
+Graphics::setIntegerScaler ( void )
 {
 	SDL_DisplayMode mode;
 
@@ -234,3 +280,125 @@ void Graphics::setIntegerScaler ( void )
 
 	_scaler = 1;
 }
+
+
+void
+Graphics::copyToIndexedSurface ( SDL_Surface *source )
+{
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t p;
+	uint16_t x;
+	uint16_t y;
+	uint32_t *sp = ( uint32_t * ) source->pixels;
+	uint8_t *dp = ( uint8_t * ) _surface->pixels;
+	uint32_t color;
+
+
+	for ( y = 0; y < source->h; y++ )
+	{
+		for ( x = 0; x < source->w; x++ )
+		{
+			color = sp [ ( ( y * source->w ) + x ) ];
+			SDL_GetRGB ( color, source->format, &r, &g, &b ); 
+			if ( r < 64 )
+			{
+				p = 0;
+			}
+			else if ( r < 128 )
+			{
+				p = 1;
+			}
+			else if ( r < 192 )
+			{
+				p = 2;
+			}
+			else
+			{
+				p = 3;
+			}
+
+			//std::cout << "( "<< x << ", " << y << " )" << color << ", " << ( int ) p << std::endl;
+			dp [ ( ( y * _surface->w ) + x ) ] = p;
+		}
+	}
+}
+
+
+void
+Graphics::upgradeSurfaceAndStream ( void )
+{
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t p;
+	uint16_t x;
+	uint16_t y;
+	uint8_t *p1 = ( uint8_t * ) _surface->pixels;
+	uint32_t *p2 = ( uint32_t * ) _tiles_surface->pixels;
+
+
+	// paint indexed surface to tiles_surface
+	for ( y = 0; y < _surface->h; y++ )
+	{
+		for ( x = 0; x < _surface->w; x++ )
+		{
+			p = p1 [ ( ( y * _surface->w ) + x ) ];
+			r = _palettes->getRed ( _palette, p );
+			g = _palettes->getGreen ( _palette, p );
+			b = _palettes->getBlue ( _palette, p );
+			p2 [ ( ( y * _tiles_surface->w ) + x ) ] = SDL_MapRGB ( _tiles_surface->format, r, g, b );
+		}
+	}
+
+	// update stream texture
+	SDL_UpdateTexture ( _texture, NULL, _tiles_surface->pixels, _tiles_surface->w * sizeof ( uint32_t ) );
+}
+
+
+void
+Graphics::setPalette ( uint8_t palette_index )
+{
+	if ( palette_index >= _palettes->getPaletteCount ( ) )
+	{
+		return;
+	}
+	
+	_palette = palette_index;
+	SDL_SetPaletteColors ( _surface->format->palette, _palettes->getPalette ( _palette ), 0, COLORS_LIMIT );
+	upgradeSurfaceAndStream ( );
+}
+
+
+void
+Graphics::nextPalette ( void )
+{
+	_palette++;
+
+	if ( _palette >= _palettes->getPaletteCount ( ) )
+	{
+		_palette = 0;
+	}
+
+	SDL_SetPaletteColors ( _surface->format->palette, _palettes->getPalette ( _palette ), 0, COLORS_LIMIT );
+	upgradeSurfaceAndStream ( );
+}
+
+
+void
+Graphics::prevPalette ( void )
+{
+	if ( _palette > 0 )
+	{
+		_palette--;
+	}
+	else
+	{
+		_palette = _palettes->getPaletteCount ( ) - 1;
+	}
+
+	SDL_SetPaletteColors ( _surface->format->palette, _palettes->getPalette ( _palette ), 0, COLORS_LIMIT );
+	upgradeSurfaceAndStream ( );
+}
+

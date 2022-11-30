@@ -9,7 +9,7 @@
 
 
 # files to compile
-OBJECTS = main.cpp data.cpp input.cpp game.cpp graphics.cpp playfield.cpp ticks.cpp
+OBJECTS = main.cpp data.cpp input.cpp game.cpp graphics.cpp palettes.cpp playfield.cpp ticks.cpp
 
 # compiler
 CXX = g++

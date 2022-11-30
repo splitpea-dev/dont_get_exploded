@@ -40,7 +40,8 @@ Game::~Game ( void )
 }
 
 
-void Game::play ( void )
+void
+Game::play ( void )
 {
 	uint8_t kaboom = 0;
 	bool is_running = true;
@@ -60,7 +61,10 @@ void Game::play ( void )
 			is_running = false;
 			break;
 		}
-		
+	
+		// handle palette change
+		handlePaletteChange ( );
+	
 		// check for function reset keys
 		checkFunctionResets ( );
 		
@@ -107,7 +111,8 @@ void Game::play ( void )
 }
 
 
-uint8_t Game::handleLeftClick ( void )
+uint8_t
+Game::handleLeftClick ( void )
 {
 	uint16_t x = _input->getTileX ( );
 	uint16_t y = _input->getTileY ( );
@@ -140,7 +145,8 @@ uint8_t Game::handleLeftClick ( void )
 }
 
 
-void Game::handleRightClick ( void )
+void
+Game::handleRightClick ( void )
 {
 	uint8_t x = _input->getTileX ( );
 	uint8_t y = _input->getTileY ( );
@@ -171,7 +177,23 @@ void Game::handleRightClick ( void )
 }
 
 
-void Game::checkFunctionResets ( void )
+void
+Game::handlePaletteChange ( void )
+{
+	if ( _input->isSet ( KEY_COMMA ) == true )
+	{
+		_graphics->prevPalette ( );
+	}
+
+	if ( _input->isSet ( KEY_PERIOD ) == true )
+	{
+		_graphics->nextPalette ( );
+	}
+}
+
+
+void
+Game::checkFunctionResets ( void )
 {
 	bool fk_pressed = false;
 
@@ -208,7 +230,8 @@ void Game::checkFunctionResets ( void )
 }
 
 
-void Game::sweep ( int16_t x, int16_t y )
+void
+Game::sweep ( int16_t x, int16_t y )
 {
 	int16_t c;
 	int16_t r;
@@ -254,7 +277,9 @@ void Game::sweep ( int16_t x, int16_t y )
 	}
 }
 
-void Game::calculateCorrectFlags ( void )
+
+void
+Game::calculateCorrectFlags ( void )
 {
 	uint16_t i;
 
@@ -271,7 +296,8 @@ void Game::calculateCorrectFlags ( void )
 }
 
 
-bool Game::isWin ( void )
+bool
+Game::isWin ( void )
 {
 	calculateCorrectFlags ( );
 
@@ -284,7 +310,8 @@ bool Game::isWin ( void )
 }
 
 
-void Game::explode ( void )
+void
+Game::explode ( void )
 {
 	_data->setMessage ( YOU_GOT_EXPLODED );
 	_playfield->explodePlayfield ( );
@@ -292,7 +319,8 @@ void Game::explode ( void )
 }
 
 
-void Game::victory ( void )
+void
+Game::victory ( void )
 {
 	_data->setMessage ( YOU_FLAGGED_ALL_THE_MINES );
 	_state = GAME_ENDED;

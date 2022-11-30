@@ -23,13 +23,15 @@ Ticks::~Ticks ( void )
 }
 
 
-void Ticks::start ( void )
+void
+Ticks::start ( void )
 {
 	_pc_start = SDL_GetPerformanceCounter ( );
 }
 
 
-void Ticks::end ( void )
+void
+Ticks::end ( void )
 {
 	do
 	{

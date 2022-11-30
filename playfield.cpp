@@ -28,7 +28,8 @@ Playfield::~Playfield ( void )
 }
 
 
-void Playfield::clearPlayfield ( void )
+void
+Playfield::clearPlayfield ( void )
 {
 	uint16_t i;
 
@@ -42,25 +43,29 @@ void Playfield::clearPlayfield ( void )
 }
 
 
-uint8_t Playfield::getWidth ( void )
+uint8_t
+Playfield::getWidth ( void )
 {
 	return _w;
 }
 
 
-uint8_t Playfield::getHeight ( void )
+uint8_t
+Playfield::getHeight ( void )
 {
 	return _h;
 }
 
 
-uint16_t Playfield::getArea ( void )
+uint16_t
+Playfield::getArea ( void )
 {
 	return _a;
 }
 
 
-void Playfield::generatePlayfield ( uint8_t x, uint8_t y, uint16_t number_of_mines )
+void
+Playfield::generatePlayfield ( uint8_t x, uint8_t y, uint16_t number_of_mines )
 {
 	uint16_t p;
 
@@ -70,7 +75,8 @@ void Playfield::generatePlayfield ( uint8_t x, uint8_t y, uint16_t number_of_min
 }
 
 
-void Playfield::generatePlayfield ( uint16_t position, uint16_t number_of_mines )
+void
+Playfield::generatePlayfield ( uint16_t position, uint16_t number_of_mines )
 {	
 	uint16_t i;
 	uint16_t r;
@@ -92,7 +98,8 @@ void Playfield::generatePlayfield ( uint16_t position, uint16_t number_of_mines 
 }
 
 
-void Playfield::addProximityCounts ( void )
+void
+Playfield::addProximityCounts ( void )
 {
 	uint8_t count;
 	int16_t x;
@@ -123,7 +130,8 @@ void Playfield::addProximityCounts ( void )
 }
 
 
-uint8_t Playfield::mineCheck ( int16_t x, int16_t y )
+uint8_t
+Playfield::mineCheck ( int16_t x, int16_t y )
 {
 	// out of bounds
 	if ( ( x < 0 ) || ( y < 0 ) )
@@ -147,7 +155,8 @@ uint8_t Playfield::mineCheck ( int16_t x, int16_t y )
 }
 
 
-void Playfield::explodePlayfield ( void )
+void
+Playfield::explodePlayfield ( void )
 {
 	uint16_t i;
 	
@@ -180,7 +189,8 @@ void Playfield::explodePlayfield ( void )
 }
 
 
-void Playfield::printPlayfield ( void )
+void
+Playfield::printPlayfield ( void )
 {
 	uint8_t x;
 	uint8_t y;
@@ -200,7 +210,8 @@ void Playfield::printPlayfield ( void )
 }
 
 
-uint8_t Playfield::getAbove ( uint8_t x, uint8_t y )
+uint8_t
+Playfield::getAbove ( uint8_t x, uint8_t y )
 {
 	uint16_t p;
 
@@ -213,7 +224,8 @@ uint8_t Playfield::getAbove ( uint8_t x, uint8_t y )
 }
 
 
-uint8_t Playfield::getAbove ( uint16_t position )
+uint8_t
+Playfield::getAbove ( uint16_t position )
 {
 	assert ( position < _a );
 
@@ -221,7 +233,8 @@ uint8_t Playfield::getAbove ( uint16_t position )
 }
 
 
-uint8_t Playfield::getBelow ( uint8_t x, uint8_t y )
+uint8_t
+Playfield::getBelow ( uint8_t x, uint8_t y )
 {
 	uint16_t p;
 
@@ -234,7 +247,8 @@ uint8_t Playfield::getBelow ( uint8_t x, uint8_t y )
 }
 
 
-uint8_t Playfield::getBelow ( uint16_t position )
+uint8_t
+Playfield::getBelow ( uint16_t position )
 {
 	assert ( position < _a );
 
@@ -242,7 +256,8 @@ uint8_t Playfield::getBelow ( uint16_t position )
 }
 
 
-void Playfield::setAbove ( uint8_t x, uint8_t y, uint8_t type )
+void
+Playfield::setAbove ( uint8_t x, uint8_t y, uint8_t type )
 {
 	uint16_t p;
 
@@ -255,7 +270,8 @@ void Playfield::setAbove ( uint8_t x, uint8_t y, uint8_t type )
 }
 
 
-void Playfield::setAbove ( uint16_t position, uint8_t type )
+void
+Playfield::setAbove ( uint16_t position, uint8_t type )
 {
 	assert ( position < _a );
 	if ( type > INCORRECT_FLAG )
@@ -267,7 +283,8 @@ void Playfield::setAbove ( uint16_t position, uint8_t type )
 }
 
 
-void Playfield::setBelow ( uint8_t x, uint8_t y, uint8_t type )
+void
+Playfield::setBelow ( uint8_t x, uint8_t y, uint8_t type )
 {	
 	uint16_t p;
 
@@ -280,7 +297,8 @@ void Playfield::setBelow ( uint8_t x, uint8_t y, uint8_t type )
 }
 
 
-void Playfield::setBelow ( uint16_t position, uint8_t type )
+void
+Playfield::setBelow ( uint16_t position, uint8_t type )
 {
 	assert ( position < _a );
 	if ( type > EXPLODED_MINE )
@@ -290,5 +308,4 @@ void Playfield::setBelow ( uint16_t position, uint8_t type )
 
 	_cells [ position ].below = type;
 }
-
 
