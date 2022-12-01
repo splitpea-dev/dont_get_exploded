@@ -20,7 +20,7 @@
 
 // graphics file
 #define TILES_FILENAME            "./tiles.png"
-
+#define ICON_FILENAME             "./icon.png"
 
 // GAME_H
 // game states

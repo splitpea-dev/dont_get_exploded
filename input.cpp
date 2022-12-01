@@ -273,14 +273,14 @@ Input::getMouseY ( void )
 uint16_t
 Input::getTileX ( void )
 {
-	return ( floor ( _mouse_x / 32 ) );
+	return ( uint16_t ) ( floor ( _mouse_x / 32 ) );
 }
 
 
 uint16_t
 Input::getTileY ( void )
 {
-	return ( floor ( _mouse_y / 32 ) );
+	return ( uint16_t) ( floor ( _mouse_y / 32 ) );
 }
 
 

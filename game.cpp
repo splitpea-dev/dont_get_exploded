@@ -48,65 +48,68 @@ Game::play ( void )
 
 
 	while ( is_running == true )
-	{
-		// start frame
-		_ticks->start ( );
-
-		// update input buffers
-		_input->update ( );
-
+	{	
 		// check for exit
 		if ( _input->isSet ( EXIT ) == true )
 		{
 			is_running = false;
-			break;
 		}
+		else
+		{
+			// start frame
+			_ticks->start ( );
+
+			// update input buffers
+			_input->update ( );
+
+			// check for exit
 	
-		// handle palette change
-		handlePaletteChange ( );
+			// handle palette change
+			handlePaletteChange ( );
 	
-		// check for function reset keys
-		checkFunctionResets ( );
+			// check for function reset keys
+			checkFunctionResets ( );
 		
-		// check for mouse click (left)
-		if ( _input->isSet ( MOUSE_BUTTON_LEFT ) == true )
-		{
-			// is the click on the playfield?
-			if ( _input->isMouseInBounds ( 0, 0, RENDER_WIDTH, RENDER_WIDTH ) )
+			// check for mouse click (left)
+			if ( _input->isSet ( MOUSE_BUTTON_LEFT ) == true )
 			{
-				kaboom = handleLeftClick ( );
+				// is the click on the playfield?
+				if ( _input->isMouseInBounds ( 0, 0, RENDER_WIDTH, RENDER_WIDTH ) )
+				{
+					kaboom = handleLeftClick ( );
+				}
 			}
-		}
 		
-		// check for mouse click (right)
-		if ( _input->isSet ( MOUSE_BUTTON_RIGHT ) )
-		{
-			if ( _input->isMouseInBounds ( 0, 0, RENDER_WIDTH, RENDER_WIDTH ) )
+			// check for mouse click (right)
+			if ( _input->isSet ( MOUSE_BUTTON_RIGHT ) )
 			{
-				handleRightClick ( );
+				if ( _input->isMouseInBounds ( 0, 0, RENDER_WIDTH, RENDER_WIDTH ) )
+				{
+					handleRightClick ( );
+				}
 			}
+
+			// game over checks
+			if ( kaboom == 1 )
+			{
+				// death by mine
+				explode ( );
+
+				// reset the trigger
+				kaboom = 0;
+			}
+
+			if ( isWin ( ) == true )
+			{
+				victory ( );
+			}
+
+			// render game
+			_graphics->render ( _playfield, _data );
+
+			// end frame
+			_ticks->end ( );
 		}
-
-		// game over checks
-		if ( kaboom == 1 )
-		{
-			// death by mine
-			explode ( );
-
-			// reset the trigger
-			kaboom = 0;
-		}
-
-		if ( isWin ( ) == true )
-		{
-			victory ( );
-		}
-
-		// render game
-		_graphics->render ( _playfield, _data );
-
-		// end frame
-		_ticks->end ( );
 	}
 }
 
@@ -127,7 +130,7 @@ Game::handleLeftClick ( void )
 	// only first move, generate playfield
 	if ( _state == PLAYING_FIRST_MOVE )
 	{
-		_playfield->generatePlayfield ( x, y, _data->getNumberOfMines ( ) );
+		_playfield->generatePlayfield ( ( uint8_t ) x, ( uint8_t ) y, _data->getNumberOfMines ( ) );
 		_state = PLAYING;
 	}
 
@@ -135,9 +138,9 @@ Game::handleLeftClick ( void )
 	sweep ( ( int16_t ) x, ( int16_t ) y );
 
 	// check for mine
-	if ( _playfield->getBelow ( x, y ) == MINE )
+	if ( _playfield->getBelow ( ( uint8_t ) x, ( uint8_t ) y ) == MINE )
 	{
-		_playfield->setBelow ( x, y, EXPLODED_MINE );
+		_playfield->setBelow ( ( uint8_t ) x, ( uint8_t ) y, EXPLODED_MINE );
 		return 1;
 	}
 
@@ -148,8 +151,8 @@ Game::handleLeftClick ( void )
 void
 Game::handleRightClick ( void )
 {
-	uint8_t x = _input->getTileX ( );
-	uint8_t y = _input->getTileY ( );
+	uint8_t x = ( uint8_t ) _input->getTileX ( );
+	uint8_t y = ( uint8_t ) _input->getTileY ( );
 
 
 	// do nothing if game over
@@ -158,19 +161,19 @@ Game::handleRightClick ( void )
 		return;
 	}
 
-	if ( _playfield->getAbove ( x, y ) == DIRT )
+	if ( _playfield->getAbove ( ( uint8_t ) x, ( uint8_t ) y ) == DIRT )
 	{
 		// can we place a flag?
 		if ( _data->setFlag ( ) == true )
 		{
-			_playfield->setAbove ( x, y, FLAG );
+			_playfield->setAbove ( ( uint8_t ) x, y, ( uint8_t ) FLAG );
 		}
 	}
-	else if ( _playfield->getAbove ( x, y ) == FLAG )
+	else if ( _playfield->getAbove ( ( uint8_t ) x, ( uint8_t ) y ) == FLAG )
 	{
 		if ( _data->restoreFlag ( ) == true )
 		{
-			_playfield->setAbove ( x, y, DIRT );
+			_playfield->setAbove ( ( uint8_t ) x, ( uint8_t ) y, DIRT );
 		}
 	}
 	else;
@@ -249,21 +252,21 @@ Game::sweep ( int16_t x, int16_t y )
 	}
 
 	// if playfield is already exposed, do nothing
-	if ( _playfield->getAbove ( x, y ) == EXPOSED )
+	if ( _playfield->getAbove ( ( uint8_t ) x, ( uint8_t ) y ) == EXPOSED )
 	{
 		return;
 	}
 
-	if ( _playfield->getAbove ( x, y ) == FLAG )
+	if ( _playfield->getAbove ( ( uint8_t ) x, ( uint8_t ) y ) == FLAG )
 	{
 		_data->restoreFlag ( );
 	}
 
 	// expose playfield
-	_playfield->setAbove ( x, y, EXPOSED );
+	_playfield->setAbove ( ( uint8_t ) x, ( uint8_t ) y, EXPOSED );
 
 	// if not empty below, we are done
-	if ( _playfield->getBelow ( x, y ) > EMPTY )
+	if ( _playfield->getBelow ( ( uint8_t ) x, ( uint8_t ) y ) > EMPTY )
 	{
 		return;
 	}

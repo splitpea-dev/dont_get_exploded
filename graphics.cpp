@@ -16,6 +16,7 @@ Graphics::Graphics ( void )
 	uint32_t b_mask;
 	uint32_t a_mask;
 	SDL_Surface *loaded_surface;
+	SDL_Surface *icon;
 
 
 	#if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -47,6 +48,12 @@ Graphics::Graphics ( void )
 	_palettes = new Palettes ( PALETTES_LIMIT, COLORS_LIMIT );
 	_palettes->load ( PALETTES_FILENAME );
 
+
+	// load icon and set
+	icon = IMG_Load ( ICON_FILENAME );
+	SDL_SetColorKey ( icon, SDL_TRUE, SDL_MapRGBA ( icon->format, 0x00, 0xff, 0xff, 0xff ) );
+	SDL_SetWindowIcon ( _window, icon );
+	SDL_FreeSurface ( icon );
 
 	// load tiles and create texture
 	loaded_surface = IMG_Load ( TILES_FILENAME );
@@ -213,7 +220,7 @@ Graphics::renderPlayfield ( Playfield *playfield )
 			
 			if ( playfield->getAbove ( x, y ) == EXPOSED )
 			{
-				switch ( playfield->getBelow ( x, y ) )
+				switch ( playfield->getBelow ( ( uint8_t ) x, ( uint8_t ) y ) )
 				{
 					case MINE:
 						i = 4;
@@ -225,13 +232,13 @@ Graphics::renderPlayfield ( Playfield *playfield )
 						i = 5;
 						break;
 					default:
-						i = 6 + playfield->getBelow ( x, y );
+						i = 6 + playfield->getBelow ( ( uint8_t ) x, ( uint8_t ) y );
 						break;
 				}
 			}
 			else
 			{
-				switch ( playfield->getAbove ( x, y ) )
+				switch ( playfield->getAbove ( ( uint8_t ) x, ( uint8_t ) y ) )
 				{
 					case DIRT:
 						i = 0;
