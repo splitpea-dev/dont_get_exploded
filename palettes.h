@@ -1,3 +1,11 @@
+/*
+** Don't Get Exploded!
+** Copyright 2022, Brian Puthuff
+**
+** See LICENSE.md for details.
+*/
+
+
 #ifndef PALETTE_H
 #define PALETTE_H
 
@@ -12,7 +20,7 @@ class Palettes
 {
 	public:
 	Palettes ( uint8_t palettes_count, uint8_t colors_count );
-	~Palettes ( );
+	~Palettes ( void );
 
 	SDL_Color *
 	getPalette ( uint8_t palette_index );
