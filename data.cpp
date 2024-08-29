@@ -1,6 +1,10 @@
 /*
 ** Don't Get Exploded!
+<<<<<<< HEAD
 ** Copyright 2022, Brian Puthuff
+=======
+** Copyright 2022 - 2024, Brian Puthuff
+>>>>>>> 41dc873 (General refactoring.)
 **
 ** See LICENSE.md for details.
 */
@@ -9,9 +13,15 @@
 #include "data.h"
 
 
+<<<<<<< HEAD
 Data::Data ( void )
 {
 	setDifficulty ( I_LIKE_IT_SPICY );
+=======
+Data::Data(void)
+{
+	setDifficulty(I_LIKE_IT_SPICY);
+>>>>>>> 41dc873 (General refactoring.)
 }
 
 

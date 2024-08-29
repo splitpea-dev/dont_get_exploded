@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+=======
+/*
+** Don't Get Exploded!
+** Copyright 2022 - 2024, Brian Puthuff
+**
+** See LICENSE.md for details.
+*/
+
+>>>>>>> 41dc873 (General refactoring.)
 #include "palettes.h"
 
 
@@ -261,7 +271,11 @@ Palettes::load ( const char *filename )
 
 	/* close the file */
 	fclose ( file );
+<<<<<<< HEAD
 	std::cout << "Palettes file closed." << std::endl;
+=======
+	//std::cout << "Palettes file closed." << std::endl;
+>>>>>>> 41dc873 (General refactoring.)
 
 	return 0;
 }

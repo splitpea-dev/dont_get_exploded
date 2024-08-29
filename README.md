@@ -8,7 +8,11 @@ Start the game by selecting a random tile. If the underlying feature is an empty
 
 If you expose a tile that has a mine underneath, the game is over. The goal is to correctly flag all assumed mine locations. A counter in the lower right corner indicates how many flags are available to place (based on the difficulty setting). If there are no more available flags to place, and the game hasn't ended in your favor, then some placed flags are incorrect. You may remove placed flags at any time.
 
+<<<<<<< HEAD
 ![Sample Screenshot](./sample_screenshot.png)
+=======
+![Sample Screenshot](./sample_screenshot.png);
+>>>>>>> 41dc873 (General refactoring.)
 
 ## Input
 
@@ -68,5 +72,9 @@ That should build an executable called ``dge``.
 
 ## License
 
+<<<<<<< HEAD
 This program is released under the BSD 3-clause license. See the ``LICENSE.md`` file for details.
+=======
+This program employes the BSD 3-clause license. See the ``LICENSE.md`` file for details.
+>>>>>>> 41dc873 (General refactoring.)
 
