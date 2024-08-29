@@ -70,9 +70,5 @@ That should build an executable called ``dge``.
 
 ## License
 
-<<<<<<< HEAD
 This program is released under the BSD 3-clause license. See the ``LICENSE.md`` file for details.
-=======
-This program employes the BSD 3-clause license. See the ``LICENSE.md`` file for details.
->>>>>>> 41dc873 (General refactoring.)
 
