@@ -1,6 +1,6 @@
 BSD 3-Clause License
 
-Copyright 2022, Brian Puthuff
+Copyright 2022 - 2024, Brian Puthuff
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

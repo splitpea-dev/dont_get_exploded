@@ -1,0 +1,12 @@
+{
+        "files.associations": {
+                "cstdint": "cpp",
+                "format": "cpp",
+                "optional": "cpp",
+                "new": "cpp",
+                "iostream": "cpp",
+                "random": "cpp",
+                "system_error": "cpp",
+                "cmath": "cpp"
+        }
+}
