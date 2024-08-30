@@ -9,7 +9,6 @@
 #pragma once
 
 
-// GRAPHICS_H
 // renderer dimensions
 #define RENDER_WIDTH              640
 #define RENDER_HEIGHT             672
