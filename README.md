@@ -2,15 +2,13 @@
 
 ## Description
 
-Flag those mines and don't get exploded! **Don't Get Exploded** is a single player logic puzzle game involving mines, deductive reasoning, and flags. You know this game. It goes by many names, usually with the word "mine" in the forefront. If for some incredible reason, you are not familiar with this type of game, here's the basic game play rules:
+Flag those mines and don't get exploded! **Don't Get Exploded** is a single player logic puzzle game about inferring the location of hidden mines using deductive reasoning. If you are not familiar with this type of game, here's the basic game play rules:
 
-Start the game by selecting a random tile. If the underlying feature is an empty cell, it will expose more tiles until it reaches proximity count tiles. Use the information provided by these proximity count tiles to deduce where the hidden mines are located. Place a flag on the unexposed tile where you believe a mine is resting underneath.
+Start the game by selecting a random tile. If the underlying feature is an empty cell, it will expose more tiles until it reaches proximity count tiles. Proximity count tiles feature a number indicating how many mines they are adjacent to. Use the information provided by these proximity count tiles to deduce where the hidden mines are located. Place a flag on the unexposed tile where you believe a mine is resting underneath and continue to "sweep" blank cells you believe are safe to continue.
 
-If you expose a tile that has a mine underneath, the game is over. The goal is to correctly flag all assumed mine locations. A counter in the lower right corner indicates how many flags are available to place (based on the difficulty setting). If there are no more available flags to place, and the game hasn't ended in your favor, then some placed flags are incorrect. You may remove placed flags at any time.
-
+If you expose a tile that has a mine underneath, the game is over. The goal is to correctly place flags above all assumed hidden mine locations. A counter in the lower right corner indicates how many flags are available to place (based on the difficulty setting). If there are no more available flags to place, and the game hasn't ended in your favor, then some placed flags are incorrect. You may remove placed flags at any time.
 
 ![Sample Screenshot](./sample_screenshot.png)
-
 
 ## Input
 
@@ -26,19 +24,19 @@ The game is set to medium difficulty by default. You can reset the game to an al
 
 ``F9``- New game (**RESET**) at the currently selected difficulty setting.
 
-The game features sixteen (4-color) palettes. To cycle through the palettes, use the following keys:
+The game features sixteen (4-color) palettes. To change the current palette at any time, use the following keys:
 
 ``, (comma)`` - Switch to previous palette in the palette list. This will loop to the last palette if you are on palette zero.
 
 ``. (period)`` - Switch to next palette in the palette list. This will loop to the first palette if you are on the last palette.
 
-To exit the game completely, close the game window.
+To exit the game completely, close the game window or press ``ESC``.
 
 <br>
 
 ## Customization
 
-The tile sheet is just a PNG image with art featuring only four shades of gray. If you change the art in the tile sheet, be sure to only use the following colors:
+The tile sheet is a PNG image with art featuring only four shades of gray. If you change the art in the tile sheet, be sure to only use the following colors:
 
 ``COLOR 0: R 32, G 32, B 32; HEX 202020``
 
@@ -48,9 +46,9 @@ The tile sheet is just a PNG image with art featuring only four shades of gray. 
 
 ``COLOR 3: R 224, G 224, B 224; HEX e0e0e0``
 
-Color 0 is considered the darkest shade and color 3, the brightest. At runtime, the program looads this image and converts this palette to an indexed surface, which is used for palette swaps. Palettes can be added, removed, and modified in the ``palettes.hex`` file. When the program reads this file, it ignores blank lines and comment lines beginning with a `#`.
+Color 0 is considered the darkest shade and color 3, the brightest. At runtime, the program loads the image and converts it to a palette indexed surface for internal use. This allows for palette swaps. Palettes can be added, removed, and modified in the ``palettes.hex`` file. When the program reads this file, it ignores blank lines and comment lines beginning with a `#`.
 
-Each palette must have its color entries, starting with color 0, at the start of a new line. In order to support the number of palettes contained in the ``palettes.hex`` file, the ``PALETTES_LIMIT`` definition in the ``defines.h`` file must be edited with the proper count. Please note that this value must be within within 1 (minimum) to 16 (maximumm). As a safety precaution, the program generates a default palette for every palette in the vector. These default values are overridden by the values stored in the ``palettes.hex`` file, assuming there are no errors.
+Each palette must have its color entries, starting with color 0, at the start of a new line. In order to support the number of palettes contained in the ``palettes.hex`` file, the ``PALETTES`` definition in the ``defines.h`` file must be edited with the proper count. Please note that this value must be within within 1 (minimum) to 16 (maximumm). As a safety precaution, the program generates a default palette for every palette in the array. These default values are overridden by the values stored in the ``palettes.hex`` file, assuming there are no errors.
 
 Note: Palettes in the current build of this repository are sourced from various artist featured on Lo-Spec.
 
@@ -70,5 +68,5 @@ That should build an executable called ``dge``.
 
 ## License
 
-This program is released under the BSD 3-clause license. See the ``LICENSE.md`` file for details.
+This program employes the BSD 3-clause license. See the ``LICENSE.md`` file for details.
 
